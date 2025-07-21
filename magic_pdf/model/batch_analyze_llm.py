@@ -195,8 +195,15 @@ class BatchAnalyzeLLM:
                 messages.append(cid2instruction[cat_ids[i]])
             if len(new_images) == 0:
                 return [''] * len(images)
-            out = self.model.chat_model.batch_inference(new_images, messages)
-            outs.extend(out)
+            batch_size = 50
+            image_count = len(new_images)
+            for index in range(0, image_count, batch_size):
+                logger.info(f"vllm process batch: {index} / {image_count}")
+                end = image_count if (index + batch_size) > image_count else (index + batch_size)
+                new_images_temp = new_images[index: end]
+                new_messages = messages[index: end]
+                out = self.model.chat_model.batch_inference(new_images_temp, messages)
+                outs.extend(out)
         else:
             buffer = BytesIO()
             for i in range(len(images)):

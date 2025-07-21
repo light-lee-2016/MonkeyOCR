@@ -199,7 +199,11 @@ class MonkeyChat_vLLM:
         self.gen_config = SamplingParams(max_tokens=4096,temperature=0,repetition_penalty=1.05)
     
     def _auto_gpu_mem_ratio(self, ratio):
-        mem_free, mem_total = torch.cuda.mem_get_info()
+        if torch.cuda.is_available():
+            mem_free, mem_total = torch.cuda.mem_get_info()
+        else:
+            import torch_npu
+            mem_free, mem_total = torch_npu.npu.mem_get_info()
         ratio = ratio * mem_free / mem_total
         return ratio
 
@@ -905,7 +909,12 @@ class MonkeyChat_vLLM_queue:
         logger.info(f"Max batch size: {max_batch_size}, Queue timeout: {queue_timeout}s")
     
     def _auto_gpu_mem_ratio(self, ratio):
-        mem_free, mem_total = torch.cuda.mem_get_info()
+        if torch.cuda.is_available():
+            mem_free, mem_total = torch.cuda.mem_get_info()
+        else:
+            import torch_npu
+            # npu上ratio设置0.6比较合适
+            mem_free, mem_total = torch_npu.npu.mem_get_info()
         ratio = ratio * mem_free / mem_total
         return ratio
     
